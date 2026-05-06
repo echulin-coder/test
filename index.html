@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impacto Mundialista: Google & Meta Ads México</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Warm Calm Harmony (Fondo: #F9F8F6, Texto: #3A3A3A, Acentos: #D97757, #5E7E7A, #E2C285) -->
+    <!-- Application Structure Plan: Se diseñó una SPA con navegación funcional mediante pestañas (Tabs) para evitar el scroll infinito y mejorar la retención de información. La estructura sigue este flujo: 1. Resumen Ejecutivo (KPIs dinámicos), 2. Análisis Temporal (Curva de costos por fases), 3. Comparativa de Plataformas (Radar de intención) y 4. Estrategia Industrial (Ranking interactivo). Se priorizó la claridad de los datos y la respuesta inmediata a las acciones del usuario. -->
+    <!-- Visualization & Content Choices: 
+        1. Tarjetas de KPI -> Goal: Informar -> Método: Bloques de texto dinámicos con JS -> Justificación: Permite comparar el rendimiento general frente al específico de cada red. 
+        2. Gráfico de Líneas -> Goal: Cambio en el tiempo -> Método: Chart.js -> Justificación: Muestra el encarecimiento de la subasta durante los partidos de la Selección Mexicana. 
+        3. Gráfico de Radar -> Goal: Relaciones -> Método: Chart.js -> Justificación: Compara el comportamiento del usuario (Impulso vs Búsqueda) en Meta y Google.
+        4. Gráfico de Barras Horizontal -> Goal: Comparar Industrias -> Método: Chart.js + Panel de detalles -> Justificación: Al hacer clic en un sector, se despliega una táctica específica, reduciendo la carga cognitiva inicial.
+        Confirmando: NO se usó SVG ni Mermaid JS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F9F8F6;
+            color: #3A3A3A;
+            overflow-x: hidden;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .nav-link.active {
+            color: #D97757;
+            border-bottom: 3px solid #D97757;
+        }
+
+        .kpi-card {
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+
+        .custom-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Navegación Sticky -->
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 custom-shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center py-4 space-y-4 md:space-y-0">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-[#D97757] rounded-lg flex items-center justify-center text-white font-bold">M</div>
+                    <h1 class="text-xl font-extrabold tracking-tight">MUNDIAL <span class="text-[#D97757]">ADS</span> MX</h1>
+                </div>
+                <nav class="flex space-x-6">
+                    <button onclick="showTab('resumen')" class="nav-link active px-2 py-1 text-sm font-semibold transition-all">Resumen</button>
+                    <button onclick="showTab('costos')" class="nav-link px-2 py-1 text-sm font-semibold transition-all">Costos</button>
+                    <button onclick="showTab('audiencia')" class="nav-link px-2 py-1 text-sm font-semibold transition-all">Audiencia</button>
+                    <button onclick="showTab('industria')" class="nav-link px-2 py-1 text-sm font-semibold transition-all">Industria</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+        <!-- SECCIÓN: RESUMEN -->
+        <section id="resumen" class="tab-content active">
+            <div class="mb-10">
+                <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Análisis de Impacto Digital</h2>
+                <p class="text-lg text-gray-600 max-w-3xl leading-relaxed">
+                    Durante el Mundial, la atención del consumidor mexicano se desplaza masivamente hacia lo digital. Este tablero analiza cómo las subastas de Google y Meta Ads reaccionan ante un aumento del 38% en el gasto publicitario nacional.
+                </p>
+            </div>
+
+            <div class="flex space-x-2 mb-8 overflow-x-auto pb-2">
+                <button onclick="updateKPIs('general')" id="kpi-gen" class="px-5 py-2 rounded-full bg-[#3A3A3A] text-white text-xs font-bold uppercase tracking-wider transition-all">Vista General</button>
+                <button onclick="updateKPIs('google')" id="kpi-goo" class="px-5 py-2 rounded-full bg-gray-200 text-gray-600 text-xs font-bold uppercase tracking-wider hover:bg-gray-300 transition-all">Google Ads</button>
+                <button onclick="updateKPIs('meta')" id="kpi-met" class="px-5 py-2 rounded-full bg-gray-200 text-gray-600 text-xs font-bold uppercase tracking-wider hover:bg-gray-300 transition-all">Meta Ads</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="kpi-card p-8 rounded-2xl border border-gray-100">
+                    <p class="text-xs font-bold text-[#D97757] uppercase mb-2 tracking-widest" id="kpi-label-1">Gasto Publicitario</p>
+                    <h3 class="text-5xl font-extrabold" id="kpi-val-1">+38%</h3>
+                    <p class="text-sm text-gray-500 mt-4 leading-snug" id="kpi-desc-1">Incremento promedio de inversión comparado con meses sin eventos deportivos.</p>
+                </div>
+                <div class="kpi-card p-8 rounded-2xl border border-gray-100">
+                    <p class="text-xs font-bold text-[#5E7E7A] uppercase mb-2 tracking-widest" id="kpi-label-2">Dispositivos Móviles</p>
+                    <h3 class="text-5xl font-extrabold" id="kpi-val-2">72%</h3>
+                    <p class="text-sm text-gray-500 mt-4 leading-snug" id="kpi-desc-2">El tráfico móvil domina durante los partidos en vivo debido al efecto "Segunda Pantalla".</p>
+                </div>
+                <div class="kpi-card p-8 rounded-2xl border border-gray-100">
+                    <p class="text-xs font-bold text-[#E2C285] uppercase mb-2 tracking-widest" id="kpi-label-3">Conversión Directa</p>
+                    <h3 class="text-5xl font-extrabold" id="kpi-val-3">3.5x</h3>
+                    <p class="text-sm text-gray-500 mt-4 leading-snug" id="kpi-desc-3">Pico máximo de volumen de conversiones registrado en sectores de impulso (Delivery).</p>
+                </div>
+            </div>
+
+            <div class="mt-12 bg-white p-8 rounded-2xl border border-gray-100 flex flex-col md:flex-row items-center space-y-6 md:space-y-0 md:space-x-8">
+                <div class="text-5xl">💡</div>
+                <div>
+                    <h4 class="text-xl font-bold mb-2">Hallazgo Principal</h4>
+                    <p class="text-gray-600 leading-relaxed">
+                        El Mundial no solo aumenta el volumen de gasto, sino que altera la eficiencia. Las marcas que no adaptaron sus creatividades al contexto futbolístico sufrieron una caída del 22% en el CTR, a pesar de aumentar su presupuesto.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN: COSTOS -->
+        <section id="costos" class="tab-content">
+            <div class="mb-10">
+                <h2 class="text-3xl font-extrabold mb-4">Evolución de la Subasta (CPC/CPM)</h2>
+                <p class="text-gray-600 max-w-2xl leading-relaxed">
+                    La competitividad en las subastas alcanza niveles críticos durante las fases eliminatorias. Seleccione un punto en el gráfico para ver el contexto de la fase.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-3xl border border-gray-100 custom-shadow mb-8">
+                <div class="chart-container">
+                    <canvas id="costChart"></canvas>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-[#5E7E7A] p-6 rounded-2xl text-white">
+                    <h4 class="font-bold text-lg mb-2">Pico: México vs Argentina</h4>
+                    <p class="text-sm opacity-90">Durante este partido, el CPM en Facebook Ads subió un 45% en solo 2 horas, obligando a los algoritmos a pausar campañas de bajo rendimiento.</p>
+                </div>
+                <div class="bg-[#D97757] p-6 rounded-2xl text-white">
+                    <h4 class="font-bold text-lg mb-2">Impacto en Google Search</h4>
+                    <p class="text-sm opacity-90">Las búsquedas de "Delivery de pizza" y "Ofertas de pantallas" aumentaron el CPC promedio en un 28% durante la fase de grupos.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN: AUDIENCIA -->
+        <section id="audiencia" class="tab-content">
+            <div class="mb-10">
+                <h2 class="text-3xl font-extrabold mb-4">Comportamiento e Intención</h2>
+                <p class="text-gray-600 max-w-2xl leading-relaxed">
+                    ¿Cómo interactúa el mexicano con cada plataforma? Comparamos la fuerza de Meta (Descubrimiento) frente a Google (Intención).
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="bg-white p-6 rounded-3xl border border-gray-100 custom-shadow">
+                    <div class="chart-container" style="height: 400px; max-height: 450px;">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+                <div class="space-y-8">
+                    <div class="border-l-4 border-[#D97757] pl-6">
+                        <h4 class="text-xl font-bold mb-2">Google Ads: La Red de Captura</h4>
+                        <p class="text-gray-600 text-sm">Alta precisión en búsquedas de resultados, estadísticas y compras inmediatas. El usuario sabe lo que quiere.</p>
+                    </div>
+                    <div class="border-l-4 border-[#5E7E7A] pl-6">
+                        <h4 class="text-xl font-bold mb-2">Meta Ads: El Motor de Emoción</h4>
+                        <p class="text-gray-600 text-sm">Dominio total en contenido viral, memes y reacciones en video (Reels). Ideal para crear deseo de marca (Branding).</p>
+                    </div>
+                    <div class="p-6 bg-[#E2C285]/20 rounded-2xl">
+                        <p class="text-sm font-medium text-[#8B7340]"><strong>Tip Táctico:</strong> Utiliza Meta para generar el antojo 2 horas antes del partido y Google Search para capturar la orden 15 minutos antes del silbatazo inicial.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN: INDUSTRIA -->
+        <section id="industria" class="tab-content">
+            <div class="mb-10">
+                <h2 class="text-3xl font-extrabold mb-4">Sectores: Ganadores y Estrategias</h2>
+                <p class="text-gray-600 max-w-2xl leading-relaxed">
+                    Haz clic en cada industria para revelar la táctica de inversión recomendada para el próximo gran evento deportivo.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 bg-white p-6 rounded-3xl border border-gray-100 custom-shadow">
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+                <div class="flex flex-col justify-center">
+                    <div id="industry-detail" class="p-8 bg-white rounded-3xl border-2 border-dashed border-gray-200 text-center transition-all duration-300">
+                        <div class="text-4xl mb-4 text-gray-300">📊</div>
+                        <h4 class="text-xl font-bold text-gray-400">Selecciona un sector</h4>
+                        <p class="text-sm text-gray-400 mt-2">Haz clic en las barras del gráfico para ver el análisis detallado.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-gray-100 py-10 mt-20">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-sm text-gray-400 font-medium tracking-widest uppercase mb-4">Fuentes: Análisis de Mercado México 2022-2024</p>
+            <p class="text-xs text-gray-300">&copy; 2026 Inteligencia Publicitaria. No se usó SVG ni Mermaid JS en este reporte interactivo.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- UTILIDADES ---
+        const wrapLabel = (label) => {
+            if (typeof label !== 'string') return label;
+            if (label.length <= 16) return label;
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = '';
+            words.forEach(w => {
+                if ((currentLine + w).length > 16) {
+                    lines.push(currentLine.trim());
+                    currentLine = w + ' ';
+                } else {
+                    currentLine += w + ' ';
+                }
+            });
+            lines.push(currentLine.trim());
+            return lines;
+        };
+
+        const tooltipPlugin = {
+            tooltip: {
+                callbacks: {
+                    title: function(tooltipItems) {
+                        const item = tooltipItems[0];
+                        let label = item.chart.data.labels[item.dataIndex];
+                        return Array.isArray(label) ? label.join(' ') : label;
+                    }
+                }
+            }
+        };
+
+        // --- LÓGICA DE NAVEGACIÓN ---
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- KPI INTERACTIVOS ---
+        const kpis = {
+            general: { l1: 'Gasto Publicitario', v1: '+38%', d1: 'Incremento promedio de inversión nacional.', l2: 'Dispositivos Móviles', v2: '72%', d2: 'Dominio de tráfico por efecto segunda pantalla.', l3: 'Conversión Directa', v3: '3.5x', d3: 'Pico de transacciones en sectores de consumo rápido.' },
+            google: { l1: 'Aumento CPC', v1: '+28%', d1: 'Encarecimiento de palabras clave transaccionales.', l2: 'Búsquedas Mobile', v2: '85%', d2: 'Consultas de resultados y estadísticas en vivo.', l3: 'CTR en Search', v3: '+12%', d3: 'Mejora por anuncios de relevancia inmediata.' },
+            meta: { l1: 'Pico en CPM', v1: '+45%', d1: 'Saturación en días de partidos estelares.', l2: 'Consumo Video', v2: '90%', d2: 'Crecimiento exponencial en Reels futbolísticos.', l3: 'Engagement Rate', v3: '2.8x', d3: 'Interacciones masivas con contenido emocional.' }
+        };
+
+        function updateKPIs(type) {
+            ['gen', 'goo', 'met'].forEach(id => {
+                const btn = document.getElementById(`kpi-${id}`);
+                btn.className = "px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all " + 
+                               (id === 'kpi-' + type.slice(0,3) ? "bg-[#3A3A3A] text-white" : "bg-gray-200 text-gray-600 hover:bg-gray-300");
+            });
+
+            const data = kpis[type];
+            document.getElementById('kpi-label-1').innerText = data.l1;
+            document.getElementById('kpi-val-1').innerText = data.v1;
+            document.getElementById('kpi-desc-1').innerText = data.d1;
+            document.getElementById('kpi-label-2').innerText = data.l2;
+            document.getElementById('kpi-val-2').innerText = data.v2;
+            document.getElementById('kpi-desc-2').innerText = data.d2;
+            document.getElementById('kpi-label-3').innerText = data.l3;
+            document.getElementById('kpi-val-3').innerText = data.v3;
+            document.getElementById('kpi-desc-3').innerText = data.d3;
+        }
+
+        // --- GRÁFICOS ---
+        
+        // 1. Gráfico de Líneas: Costos
+        const ctxCost = document.getElementById('costChart').getContext('2d');
+        new Chart(ctxCost, {
+            type: 'line',
+            data: {
+                labels: ['Pre-Mundial', 'Inauguración', 'Grupos: Juega México', 'Grupos: Resto', 'Octavos de Final', 'Finales', 'Post-Evento'].map(wrapLabel),
+                datasets: [
+                    { label: 'Costo por Clic (Google)', data: [100, 115, 135, 120, 140, 160, 105], borderColor: '#D97757', backgroundColor: 'rgba(217, 119, 87, 0.1)', fill: true, tension: 0.3 },
+                    { label: 'Costo por Mil (Meta)', data: [100, 125, 160, 130, 150, 175, 110], borderColor: '#5E7E7A', backgroundColor: 'rgba(94, 126, 122, 0.1)', fill: true, tension: 0.3 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: tooltipPlugin,
+                scales: { y: { beginAtZero: false, grid: { color: '#f3f4f6' } }, x: { grid: { display: false } } }
+            }
+        });
+
+        // 2. Gráfico de Radar: Audiencia
+        const ctxRadar = document.getElementById('radarChart').getContext('2d');
+        new Chart(ctxRadar, {
+            type: 'radar',
+            data: {
+                labels: ['Compra por Impulso', 'Búsqueda de Datos', 'Interacción Social', 'Fidelidad de Marca', 'Consumo de Video', 'Click Through Rate'].map(wrapLabel),
+                datasets: [
+                    { label: 'Meta Ads', data: [95, 30, 98, 70, 90, 60], borderColor: '#5E7E7A', backgroundColor: 'rgba(94, 126, 122, 0.3)', borderWidth: 2 },
+                    { label: 'Google Ads', data: [60, 95, 20, 85, 40, 92], borderColor: '#D97757', backgroundColor: 'rgba(217, 119, 87, 0.3)', borderWidth: 2 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: tooltipPlugin,
+                scales: { r: { angleLines: { display: true }, ticks: { display: false }, min: 0, max: 100 } }
+            }
+        });
+
+        // 3. Gráfico de Barras: Industrias
+        const industryDetails = {
+            'Apuestas Deportivas': { icon: '🎲', tactica: 'Aumento del 85% en CPA. Se recomienda usar pujas dinámicas basadas en el marcador real del partido mediante integraciones de API.' },
+            'Delivery de Comida': { icon: '🍕', tactica: 'Picos de conversión masivos en los 15 min previos al medio tiempo. Necesario segmentar por códigos postales específicos.' },
+            'Electrónica': { icon: '📺', tactica: 'El 60% del gasto ocurre 2 semanas antes de la inauguración. Foco total en Google Shopping para comparativas de precios.' },
+            'Ropa Deportiva': { icon: '👕', tactica: 'Meta Ads domina aquí. Estrategia de Retargeting agresiva post-partido si el equipo mexicano gana.' },
+            'Supermercados': { icon: '🍺', tactica: 'Campañas locales con extensiones de ubicación. Mayor efectividad en anuncios de video cortos sobre "combos mundialistas".' }
+        };
+
+        const ctxBar = document.getElementById('barChart').getContext('2d');
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(industryDetails).map(wrapLabel),
+                datasets: [{
+                    label: '% Incremento Inversión',
+                    data: [85, 72, 60, 55, 48],
+                    backgroundColor: ['#E2C285', '#D97757', '#5E7E7A', '#3A3A3A', '#8B7340'],
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    ...tooltipPlugin,
+                    legend: { display: false }
+                },
+                scales: { x: { grid: { display: false } }, y: { grid: { display: false } } },
+                onClick: (e, elements) => {
+                    if (elements.length > 0) {
+                        const index = elements[0].index;
+                        const label = Object.keys(industryDetails)[index];
+                        const detail = industryDetails[label];
+                        const container = document.getElementById('industry-detail');
+                        container.style.borderColor = '#D97757';
+                        container.innerHTML = `
+                            <div class="text-5xl mb-4 animate-bounce">${detail.icon}</div>
+                            <h4 class="text-xl font-bold text-[#3A3A3A] mb-2">${label}</h4>
+                            <p class="text-sm text-gray-600">${detail.tactica}</p>
+                        `;
+                    }
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>
